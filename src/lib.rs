@@ -12,3 +12,4 @@ pub mod color;
 pub mod options;
 pub mod utils;
 pub mod legend;
+pub mod asciigraph;
