@@ -1,42 +1,62 @@
 // Options
 
+use std::string::ToString;
 use crate::color::AnsiColor;
 
 // CharSet defines the characters used for plotting a series.
 #[derive(Debug, Clone)]
 pub struct CharSet {
-    horizontal: char,
-    veritical_line: char,
-    arc_down_right: char,
-    arc_down_left: char,
-    arc_up_right: char,
-    arc_up_left: char,
-    end_cap: char,
-    start_cap: char,
-    up_right: char,
-    down_horizontal: char,
+    /// Horizontal line character (default: ─)
+    pub(crate) horizontal: &'static str,
+
+    /// Vertical line character (default: │)
+    pub(crate) vertical_line: &'static str,
+
+    /// Arc character going down and right (default: ╭)
+    pub(crate) arc_down_right: &'static str,
+
+    /// Arc character going down and left (default: ╮)
+    pub(crate) arc_down_left: &'static str,
+
+    /// Arc character going up and right (default: ╰)
+    pub(crate) arc_up_right: &'static str,
+
+    /// Arc character going up and left (default: ╯)
+    pub(crate) arc_up_left: &'static str,
+
+    /// End cap character (default: ╴)
+    pub(crate) end_cap: &'static str,
+
+    /// Start cap character (default: ╶)
+    pub(crate) start_cap: &'static str,
+
+    /// Axis corner character (default: └)
+    pub(crate) up_right: &'static str,
+
+    /// X-axis tick mark character (default: ┬)
+    pub(crate) down_horizontal: &'static str,
 }
 
 // DEFAULT_CHAR_SET provides the default box-drawing characters.
-const DEFAULT_CHAR_SET: CharSet = CharSet {
-    horizontal:      '─',
-    veritical_line:   '│',
-    arc_down_right:  '╭',
-    arc_up_left:     '╮',
-    arc_up_right:    '╰',
-    arc_down_left:   '╯',
-    end_cap:         '╴',
-    start_cap:       '╶',
-    up_right:        '└',
-    down_horizontal: '┬',
+pub(crate) const DEFAULT_CHAR_SET: CharSet = CharSet {
+    horizontal:      "─",
+    vertical_line:   "│",
+    arc_down_right:  "╭",
+    arc_up_left:     "╮",
+    arc_up_right:    "╰",
+    arc_down_left:   "╯",
+    end_cap:         "╴",
+    start_cap:       "╶",
+    up_right:        "└",
+    down_horizontal: "┬",
 };
 
 // create_char_set is a helper function that creates a CharSet with all fields set to the same character.
 // This is useful for simple uniform character sets like "*", "•", "#", etc.
-pub fn create_char_set(character: char) -> CharSet {
+pub(crate) fn create_char_set(character: &'static str) -> CharSet {
     CharSet {
         horizontal: character,
-        veritical_line: character,
+        vertical_line: character,
         arc_down_right: character,
         arc_down_left: character,
         arc_up_right: character,
@@ -49,7 +69,7 @@ pub fn create_char_set(character: char) -> CharSet {
 }
 
 // Config holds various graph options
-pub(crate) struct Config {
+pub struct Config {
     pub(crate) width: u32,
     pub(crate) height: u32,
     pub(crate) lower_bound: Option<f64>,

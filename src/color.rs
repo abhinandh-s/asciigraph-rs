@@ -3,7 +3,7 @@
 use std::fmt;
 use std::fmt::Formatter;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct AnsiColor(u8);
 
 impl AnsiColor {
