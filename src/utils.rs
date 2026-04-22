@@ -90,17 +90,17 @@ func init() {
     }
 }*/
 
-pub(crate) fn calculate_height(interval: f64) -> u32 {
+pub(crate) fn calculate_height(interval: f64) -> usize {
     if interval >= 1.0 {
-        return interval as u32;
+        return interval as usize;
     }
 
     let scale_factor = 10f64.powf(interval.log10().floor());
     let scaled_delta = interval / scale_factor;
 
     if scaled_delta < 2.0 {
-        return scaled_delta.ceil() as u32;
+        return scaled_delta.ceil() as usize;
     }
 
-    scaled_delta.floor() as u32
+    scaled_delta.floor() as usize
 }

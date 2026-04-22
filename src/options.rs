@@ -70,13 +70,13 @@ pub(crate) fn create_char_set(character: &'static str) -> CharSet {
 
 // Config holds various graph options
 pub struct Config {
-    pub(crate) width: u32,
-    pub(crate) height: u32,
+    pub(crate) width: usize,
+    pub(crate) height: usize,
     pub(crate) lower_bound: Option<f64>,
     pub(crate) upper_bound: Option<f64>,
-    pub(crate) offset: u32,
+    pub(crate) offset: usize,
     pub(crate) caption: String,
-    pub(crate) precision: Option<u32>,
+    pub(crate) precision: Option<usize>,
     pub(crate) caption_color: AnsiColor,
     pub(crate) axis_color: AnsiColor,
     pub(crate) label_color: AnsiColor,
@@ -84,7 +84,7 @@ pub struct Config {
     pub(crate) series_legends: Vec<String>,
     pub(crate) line_ending: String,
     pub(crate) series_chars: Vec<CharSet>,
-    pub(crate) x_axis_tick_count: u32,
+    pub(crate) x_axis_tick_count: usize,
     pub(crate) x_axis_range: Option<[f64; 2]>,
     pub(crate) x_axis_value_formatter: Option<Box<dyn Fn(f64) -> String>>,
     pub(crate) y_axis_value_formatter: Option<Box<dyn Fn(f64) -> String>>,
@@ -121,13 +121,13 @@ impl Config {
     /// determined by the number of data points. If the value given is a
     /// positive number, the data points are interpolated on the x-axis.
     /// Values = 0 reset the width to the default value.
-    pub fn width(mut self, w: u32) -> Self {
+    pub fn width(mut self, w: usize) -> Self {
         self.width = w;
         self
     }
 
     /// height sets the graph's height.
-    pub fn height(mut self, h: u32) -> Self {
+    pub fn height(mut self, h: usize) -> Self {
         self.height = h;
         self
     }
@@ -147,13 +147,13 @@ impl Config {
     }
 
     /// offset sets the graph's offset.
-    pub fn offset(mut self, off: u32) -> Self {
+    pub fn offset(mut self, off: usize) -> Self {
         self.offset = off;
         self
     }
 
     /// precision sets the graphs precision.
-    pub fn precision(mut self, p: u32) -> Self {
+    pub fn precision(mut self, p: usize) -> Self {
         self.precision = Some(p);
         self
     }
@@ -210,7 +210,7 @@ impl Config {
     }
 
     /// x_axis_tick_count sets the number of ticks on the X-axis. Default is 5, minimum is 2.
-    pub fn x_axis_tick_count(mut self, count: u32) -> Self {
+    pub fn x_axis_tick_count(mut self, count: usize) -> Self {
         if count >= 2 {
             self.x_axis_tick_count = count;
         }
