@@ -252,11 +252,12 @@ pub fn plot_many(data: &[&[f64]], config: Config) -> String {
 
         if config.y_axis_value_formatter.is_none() {
             // > means right-aligned as this is the default in Go string formatting.
-            label = format!("{:>width$.prec$}", magnitude, width = max_width, prec = precision);
+            label = format!("{:>width$.prec$}", magnitude, width = max_width + 1, prec = precision);
         } else {
             if let Some(formatter) = &config.y_axis_value_formatter {
                 let val = formatter(*magnitude);
-                label = " ".repeat((max_width + 1) - (val.chars().count()));
+                let padding = " ".repeat((max_width + 1) - val.chars().count());
+                label = format!("{}{}", padding, val);
             }
         }
 

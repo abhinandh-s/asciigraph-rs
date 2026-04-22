@@ -724,16 +724,16 @@ mod tests {
             .series_colors(&[AnsiColor::RED, AnsiColor::BLUE])
             .series_legends(&["Red", "Blue"])
             .caption("legends with caption test");
-        let expected = clean(
-            r#"
- 4.00 ┤ [94m╭╮[0m
- 3.00 ┤[94m╭╯╰╮[0m
- 2.00 ┼[94m╯[0m  [94m╰[0m
- 1.00 ┤[91m╭╮[0m
- 0.00 ┼[91m╯╰[0m
-       legends with caption test
-
-       [91m■[0m Red   [94m■[0m Blue"#,
+        let expected = format!(
+            " 4.00 ┤ {}╭╮{}\n 3.00 ┤{}╭╯╰╮{}\n 2.00 ┼{}╯{}  {}╰{}\n 1.00 ┤{}╭╮{}\n 0.00 ┼{}╯╰{}\n       legends with caption test\n\n       {}■{} Red   {}■{} Blue",
+            "\x1b[94m", "\x1b[0m",
+            "\x1b[94m", "\x1b[0m",
+            "\x1b[94m", "\x1b[0m",
+            "\x1b[94m", "\x1b[0m",
+            "\x1b[91m", "\x1b[0m",
+            "\x1b[91m", "\x1b[0m",
+            "\x1b[91m", "\x1b[0m",
+            "\x1b[94m", "\x1b[0m",
         );
         assert_eq!(plot_many(&data, config), expected);
     }
@@ -744,15 +744,9 @@ mod tests {
         let s2 = vec![2.0, 3.0, 4.0, 3.0, 2.0];
         let data: Vec<&[f64]> = vec![&s1, &s2];
         let config = Config::default().series_legends(&["First", "Second"]);
-        let expected = clean(
-            r#"
- 4.00 ┤ ╭╮
- 3.00 ┤╭╯╰╮
- 2.00 ┼╯  ╰
- 1.00 ┤╭╮
- 0.00 ┼╯╰
-
-       [0m■[0m First   [0m■[0m Second"#,
+        let expected = format!(
+            " 4.00 ┤ ╭╮\n 3.00 ┤╭╯╰╮\n 2.00 ┼╯  ╰\n 1.00 ┤╭╮\n 0.00 ┼╯╰\n\n       {}■{} First   {}■{} Second",
+            "\x1b[0m", "\x1b[0m", "\x1b[0m", "\x1b[0m"
         );
         assert_eq!(plot_many(&data, config), expected);
     }
