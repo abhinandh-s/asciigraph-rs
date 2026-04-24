@@ -1,9 +1,9 @@
 use std::io::{self, BufRead};
 use std::time::{Duration, Instant};
 // This is the main entry point into the CLI.
-use clap::{arg, Parser};
+use clap::{Parser};
 use asciigraph;
-use asciigraph::{AnsiColor, Config, CharSet, create_char_set, plot_many};
+use asciigraph::{AnsiColor, CharSet, create_char_set, plot_many};
 
 #[derive(Parser, Debug)]
 #[command(name = "asciigraph", disable_help_flag = true)]
@@ -150,7 +150,7 @@ fn main() {
                 }
             }
 
-            if  Instant::now() >= next_flush_time {
+            if Instant::now() >= next_flush_time {
                 let series_copy = series.iter().map(|s| s.to_vec()).collect::<Vec<_>>();
                 let colors_series: Vec<AnsiColor> = parse_colors(&args.series_colors)
                     .unwrap_or_default();
@@ -167,7 +167,6 @@ fn main() {
 
 
                 let mut config = asciigraph::Config::default();
-                //let mut config_vec = Vec::new();
                 config = config.height(args.height)
                     .width(args.width)
                     .offset(args.offset)
@@ -199,10 +198,58 @@ fn main() {
                 next_flush_time = Instant::now() + flush_interval;
             }
         }
+    }
 
-        if !args.realtime {
-            todo!()
+    if !args.realtime {
+        if series[0].is_empty() {
+            eprintln!("No data!");
+            std::process::exit(1);
         }
+
+        let colors_series: Vec<AnsiColor> = parse_colors(&args.series_colors)
+            .unwrap_or_default();
+
+        let series_copy = series.iter().map(|s| s.to_vec()).collect::<Vec<_>>();
+        let cc = parse_color(&args.caption_color).unwrap_or(AnsiColor::DEFAULT);
+        let ac = parse_color(&args.axis_color).unwrap_or(AnsiColor::DEFAULT);
+        let lc = parse_color(&args.label_color).unwrap_or(AnsiColor::DEFAULT);
+
+        let legends: Vec<&str> = if args.series_legends.is_empty() {
+            vec![]
+        } else {
+            args.series_legends.split(',').map(|s| s.trim()).collect()
+        };
+
+
+        let mut config = asciigraph::Config::default();
+        config = config.height(args.height)
+            .width(args.width)
+            .offset(args.offset)
+            .precision(args.precision)
+            .caption(args.caption.as_str())
+            .series_colors(&colors_series)
+            .series_legends(&legends)
+            .caption_color(cc)
+            .axis_color(ac)
+            .label_color(lc)
+            .lower_bound(args.lower_bound)
+            .upper_bound(args.upper_bound);
+
+        if !char_sets.is_empty() {
+            config = config.series_chars(&char_sets);
+        }
+
+        if x_axis_enabled {
+            config = config.x_axis_range(args.x_axis_min, args.x_axis_max);
+            if args.x_axis_ticks > 0 {
+                config = config.x_axis_tick_count(args.x_axis_ticks);
+            }
+        }
+
+        let series_refs: Vec<&[f64]> = series_copy.iter().map(|s| s.as_slice()).collect();
+        let plot = plot_many(&series_refs, config);
+
+        println!("{plot}");
     }
 }
 

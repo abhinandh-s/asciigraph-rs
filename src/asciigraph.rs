@@ -28,7 +28,7 @@ pub fn plot(series: &[f64], config: Config) -> String {
 /// get_char_set returns the CharSet for a given series index, falling back to DEFAULT_CHAR_SET.
 pub(crate) fn get_char_set(config: &Config, series_index: usize) -> CharSet {
     if series_index < config.series_chars.len() {
-        let mut char_set = config.series_chars[series_index].clone();
+        return config.series_chars[series_index].clone();
     }
 
     DEFAULT_CHAR_SET
