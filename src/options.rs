@@ -4,7 +4,7 @@ use std::string::ToString;
 use crate::color::AnsiColor;
 
 // CharSet defines the characters used for plotting a series.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct CharSet {
     /// Horizontal line character (default: ─)
     pub horizontal: char,
@@ -35,6 +35,23 @@ pub struct CharSet {
 
     /// X-axis tick mark character (default: ┬)
     pub down_horizontal: char,
+}
+
+impl Default for CharSet {
+    fn default() -> Self {
+        CharSet {
+            horizontal:      DEFAULT_CHAR_SET.horizontal,
+            vertical_line:   DEFAULT_CHAR_SET.vertical_line,
+            arc_down_right:  DEFAULT_CHAR_SET.arc_down_right,
+            arc_down_left:   DEFAULT_CHAR_SET.arc_down_left,
+            arc_up_right:    DEFAULT_CHAR_SET.arc_up_right,
+            arc_up_left:     DEFAULT_CHAR_SET.arc_up_left,
+            end_cap:         DEFAULT_CHAR_SET.end_cap,
+            start_cap:       DEFAULT_CHAR_SET.start_cap,
+            up_right:        DEFAULT_CHAR_SET.up_right,
+            down_horizontal: DEFAULT_CHAR_SET.down_horizontal,
+        }
+    }
 }
 
 // DEFAULT_CHAR_SET provides the default box-drawing characters.

@@ -29,48 +29,6 @@ pub fn plot(series: &[f64], config: Config) -> String {
 pub(crate) fn get_char_set(config: &Config, series_index: usize) -> CharSet {
     if series_index < config.series_chars.len() {
         let mut char_set = config.series_chars[series_index].clone();
-
-        if char_set.horizontal.is_empty() {
-            char_set.horizontal = DEFAULT_CHAR_SET.horizontal;
-        }
-
-        if char_set.vertical_line.is_empty() {
-            char_set.vertical_line = DEFAULT_CHAR_SET.vertical_line;
-        }
-
-        if char_set.arc_down_right.is_empty() {
-            char_set.arc_down_right = DEFAULT_CHAR_SET.arc_down_right
-        }
-
-        if char_set.arc_down_left.is_empty() {
-            char_set.arc_down_left = DEFAULT_CHAR_SET.arc_down_left;
-        }
-
-        if char_set.arc_up_right.is_empty() {
-            char_set.arc_up_right = DEFAULT_CHAR_SET.arc_up_right;
-        }
-
-        if char_set.arc_up_left.is_empty() {
-            char_set.arc_up_left = DEFAULT_CHAR_SET.arc_up_left;
-        }
-
-        if char_set.end_cap.is_empty() {
-            char_set.end_cap = DEFAULT_CHAR_SET.end_cap;
-        }
-
-        if char_set.start_cap.is_empty() {
-            char_set.start_cap = DEFAULT_CHAR_SET.start_cap;
-        }
-
-        if char_set.up_right.is_empty() {
-            char_set.up_right = DEFAULT_CHAR_SET.up_right;
-        }
-
-        if char_set.down_horizontal.is_empty() {
-            char_set.down_horizontal = DEFAULT_CHAR_SET.down_horizontal;
-        }
-
-        return char_set;
     }
 
     DEFAULT_CHAR_SET
@@ -505,14 +463,15 @@ fn add_x_axis(lines: &mut String, config: &Config, len_max: usize, left_pad: usi
     let total_width = left_pad + len_max;
     let mut axis_line: Vec<char> = vec![' '; total_width];
 
-    axis_line[left_pad - 1] = DEFAULT_CHAR_SET.up_right.chars().next().unwrap();
+    // CLAUDE CHECK THIS ONE
+    axis_line[left_pad - 1] = DEFAULT_CHAR_SET.up_right;
 
     for i in 0..len_max {
-        axis_line[left_pad + i] = DEFAULT_CHAR_SET.horizontal.chars().next().unwrap();
+        axis_line[left_pad + i] = DEFAULT_CHAR_SET.horizontal;
     }
 
     for tk in &ticks {
-        axis_line[left_pad + tk.col] = DEFAULT_CHAR_SET.down_horizontal.chars().next().unwrap();
+        axis_line[left_pad + tk.col] = DEFAULT_CHAR_SET.down_horizontal;
     }
 
     // write axis line with colors

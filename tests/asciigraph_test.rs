@@ -992,7 +992,7 @@ mod tests {
         use asciigraph::options::create_char_set;
         let s1 = vec![1.0, 2.0, 3.0, 2.0, 1.0];
         let data: Vec<&[f64]> = vec![&s1];
-        let config = Config::default().series_chars(&[create_char_set("*")]);
+        let config = Config::default().series_chars(&[create_char_set('*')]);
         let expected = " 3.00 ┤ **\n 2.00 ┤****\n 1.00 ┼*  *";
         assert_eq!(plot_many(&data, config), expected);
     }
@@ -1002,7 +1002,7 @@ mod tests {
         use asciigraph::options::create_char_set;
         let s1 = vec![1.0, 2.0, 3.0, 2.0, 1.0];
         let data: Vec<&[f64]> = vec![&s1];
-        let config = Config::default().series_chars(&[create_char_set("•")]);
+        let config = Config::default().series_chars(&[create_char_set('•')]);
         let expected = " 3.00 ┤ ••\n 2.00 ┤••••\n 1.00 ┼•  •";
         assert_eq!(plot_many(&data, config), expected);
     }
@@ -1021,8 +1021,8 @@ mod tests {
         let s1 = vec![1.0, 2.0, 2.0, 2.0, 3.0];
         let data: Vec<&[f64]> = vec![&s1];
         let partial = CharSet {
-            horizontal: "=",
-            vertical_line: "|",
+            horizontal: '=',
+            vertical_line: '|',
             ..Default::default()
         };
         let config = Config::default().series_chars(&[partial]);
@@ -1037,7 +1037,7 @@ mod tests {
         let s2 = vec![3.0, 2.0, 1.0];
         let data: Vec<&[f64]> = vec![&s1, &s2];
         let config =
-            Config::default().series_chars(&[create_char_set("*"), create_char_set("#")]);
+            Config::default().series_chars(&[create_char_set('*'), create_char_set('#')]);
         let expected = " 3.00 ┼#*\n 2.00 ┤##\n 1.00 ┼*#";
         assert_eq!(plot_many(&data, config), expected);
     }
