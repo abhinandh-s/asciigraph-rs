@@ -268,7 +268,7 @@ Options:
 Feed data points via stdin:
 
 ```bash
-seq 1 72 | asciigraph -H 10 -c "plot data from stdin" --xmin 0 --xmax 40 --xt 5
+seq 1 72 | asciigraph -h 10 -c "plot data from stdin" --xmin 0 --xmax 40 --xt 5
 ```
 
 Output:

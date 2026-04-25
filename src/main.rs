@@ -9,10 +9,6 @@ use asciigraph::{AnsiColor, CharSet, create_char_set, plot_many};
 #[command(name = "asciigraph", disable_help_flag = true)]
 #[command(about = "Plot data from stdin as an ASCII graph")]
 struct Args {
-    // add help back manually
-    #[arg(long, action = clap::ArgAction::Help)]
-    help: Option<bool>,
-
     #[arg(short = 'h', long, default_value_t = 0)]
     height: usize,
 
@@ -31,7 +27,7 @@ struct Args {
     #[arg(short = 'r', long, default_value_t = false)]
     realtime: bool,
 
-    #[arg(short = 'b', long, default_value_t = 0)]
+    #[arg(short = 'b', long="buffer", default_value_t = 0)]
     realtime_buffer: usize,
 
     #[arg(short = 'f', long, default_value_t = 24.0)]
@@ -64,7 +60,7 @@ struct Args {
     #[arg(long = "sn", default_value_t = 1)]
     series_num: usize,
 
-    #[arg(long = "ch", default_value_t = String::new())]
+    #[arg(short = 'x', long = "custom-char", default_value_t = String::new())]
     custom_char: String,
 
     #[arg(long = "xmin", default_value_t = f64::NAN)]
@@ -75,6 +71,10 @@ struct Args {
 
     #[arg(long = "xt", default_value_t = 5)]
     x_axis_ticks: usize,
+
+    // add help back manually
+    #[arg(long, action = clap::ArgAction::Help)]
+    help: Option<bool>,
 }
 
 fn main() {
