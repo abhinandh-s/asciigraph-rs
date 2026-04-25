@@ -5,8 +5,6 @@
 
 Rust library to make lightweight ASCII line graphs ╭┈╯ in command line apps. This is a direct port of the Go package [guptarohit/asciigraph](https://github.com/guptarohit/asciigraph).
 
-The main goal of this project is to use it as a **learning opportunity** to improve my understanding of Rust, its ecosystem, ownership model, traits, error handling, and idiomatic patterns.
-
 ## Installation
 
 Add this to your `Cargo.toml`:
