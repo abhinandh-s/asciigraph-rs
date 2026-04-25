@@ -1,4 +1,4 @@
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Write};
 use std::time::{Duration, Instant};
 // This is the main entry point into the CLI.
 use clap::{Parser};
@@ -272,12 +272,6 @@ fn parse_color(color: &str) -> Option<AnsiColor> {
 }
 
 fn clear() {
-    if cfg!(target_os = "windows") {
-        std::process::Command::new("cmd")
-            .args(["/c", "cls"])
-            .status()
-            .unwrap();
-    } else {
-        print!("\x1b[2J\x1b[H");
-    }
+    print!("\x1b[2J\x1b[H");
+    io::stdout().flush().unwrap();
 }

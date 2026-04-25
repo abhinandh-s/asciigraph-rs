@@ -1,9 +1,22 @@
 # Rust Port of asciigraph
 
-[![Crates.io](https://img.shields.io/crates/v/asciigraph.svg)](https://crates.io/crates/asciigraph)
+[![Crates.io](https://img.shields.io/crates/v/asciigraph-rs.svg)](https://crates.io/crates/asciigraph-rs)
+[![Docs.rs](https://docs.rs/asciigraph-rs/badge.svg)](https://docs.rs/asciigraph-rs)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
 
-Rust library to make lightweight ASCII line graphs ╭┈╯ in command line apps. This is a direct port of the Go package [guptarohit/asciigraph](https://github.com/guptarohit/asciigraph).
+Rust library to make lightweight ASCII line graphs ╭┈╯ in command line apps. This port is a complete and 
+aithful implementation of the Go original (version 0.9.0) [guptarohit/asciigraph](https://github.com/guptarohit/asciigraph),
+supporting:
+
+- Single and multi-series plots
+- ANSI color support for series, axes, labels, and captions
+- Series legends
+- X-axis with configurable tick labels
+- Custom character sets for plot lines
+- Y-axis and X-axis value formatters
+- NaN gap handling with proper start and end caps
+- Lower and upper bound constraints
+- A full CLI binary with realtime streaming support and configurable FPS
 
 ## Installation
 
@@ -11,7 +24,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-asciigraph = "0.1.0"
+asciigraph-rs = "0.1.0"
 ```
 
 ## Usage
@@ -29,7 +42,7 @@ fn main() {
 ```
 
 Running this example would render the following graph:
-```bash
+```
   10.00 ┤        ╭╮
    9.00 ┤ ╭╮     ││
    8.00 ┤ ││   ╭╮││
@@ -57,7 +70,7 @@ fn main() {
 ```
 
 Running this example would render the following graph:
-```bash
+```
  6.00 ┤    ╭─
  5.00 ┼╮   │
  4.00 ┤╰╮ ╭╯
@@ -69,7 +82,7 @@ Running this example would render the following graph:
 
 ### Custom Y-axis value formatting
 
-Use `YAxisValueFormatter(...)` to control how values printed on the Y-axis are rendered.
+Use `.y_axis_value_formatter(...)` to control how values printed on the Y-axis are rendered.
 This is useful for human-readable units like bytes, durations, or domain-specific labels.
 
 ```rust
@@ -97,7 +110,7 @@ fn main() {
 ```
 
 Running this example would render the following graph:
-```bash
+```
  70.00 GiB ┤                 ╭──────╮
  56.40 GiB ┤         ╭───────╯      ╰────╮
  42.80 GiB ┤  ╭──────╯                   ╰───╮
@@ -229,8 +242,8 @@ fn main() {
 
 Install the CLI binary with:
 
-```bash
-cargo install asciigraph
+```
+cargo install asciigraph-rs
 ```
 
 ## CLI Usage
@@ -241,7 +254,7 @@ asciigraph --help
 Usage: asciigraph [OPTIONS]
 
 Options:
-  -H, --height <HEIGHT>              height in text rows, 0 for auto-scaling [default: 0]
+  -h, --height <HEIGHT>              height in text rows, 0 for auto-scaling [default: 0]
   -w, --width <WIDTH>                width in columns, 0 for auto-scaling [default: 0]
   -o, --offset <OFFSET>              offset in columns, for the label [default: 3]
   -p, --precision <PRECISION>        precision of data point labels along the y-axis [default: 2]
@@ -262,12 +275,12 @@ Options:
       --xmin <X_AXIS_MIN>            x-axis minimum value [default: NaN]
       --xmax <X_AXIS_MAX>            x-axis maximum value [default: NaN]
       --xt <X_AXIS_TICKS>            x-axis tick count [default: 5]
-  -h, --help                         Print help
+      --help                         Print help
 ```
 
 Feed data points via stdin:
 
-```bash
+```
 seq 1 72 | asciigraph -h 10 -c "plot data from stdin" --xmin 0 --xmax 40 --xt 5
 ```
 
@@ -290,10 +303,26 @@ Output:
                                   plot data from stdin
 ```
 
-For a real-time graph:
+### Realtime graphs
 
+The CLI supports streaming data in realtime using the `-r` flag.
+Data is read continuously from stdin and the graph is re-rendered
+at the specified FPS. This is useful for monitoring live metrics
+like ping times, CPU usage, or any continuously updating data source.
+
+**Windows (PowerShell):**
+```powershell
+# Realtime ping graph
+while ($true) {
+    $result = ping -n 1 google.com | Select-String 'time='
+    if ($result -match 'time=(\d+)ms') { echo $matches[1] }
+    Start-Sleep -Milliseconds 200
+} | asciigraph -r -h 10 -w 40 -c "ping (ms)"
+```
+
+**Linux/macOS:**
 ```bash
-ping -i.2 google.com | grep -oP '(?<=time=).*(?=ms)' --line-buffered | asciigraph -r -H 10 -w 40 -c "realtime ping (ms)"
+ping google.com | grep -oP '(?<=time=).*(?=ms)' --line-buffered | asciigraph -r -h 10 -w 40 -c "ping (ms)"
 ```
 
 ## Acknowledgement
