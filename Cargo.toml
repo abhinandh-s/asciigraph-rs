@@ -4,11 +4,15 @@ version = "0.1.0"
 edition = "2024"
 description = "A Rust port of the Go asciigraph library for lightweight ASCII line graphs in the terminal"
 license = "BSD-3-Clause"
-authors = ["Nii Nue Odonkor <niinue@gmail.com>"]
+authors = ["Nii Nue <niinue@gmail.com>"]
 repository = "https://github.com/neneodonkor/asciigraph-rs"
 readme = "README.md"
 keywords = ["ascii", "graph", "plot", "terminal", "cli"]
 categories = ["command-line-utilities", "visualization"]
+exclude = [
+    "tests/*",
+    ".gitignore",
+]
 
 [lib]
 name = "asciigraph"
@@ -17,14 +21,6 @@ path = "src/lib.rs"
 [[bin]]
 name = "asciigraph"
 path = "src/main.rs"
-
-[[bin]]
-name = "datagen"
-path = "src/datagen.rs"
-
-[[bin]]
-name = "clear_test"
-path = "src/clear_test.rs"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
