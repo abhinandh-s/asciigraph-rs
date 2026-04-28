@@ -4,7 +4,7 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::str::FromStr;
 
-// `#[repr(transparent)]` ensures that AnsiColor has the exact same memory layout as a u8, making it zero-cost to wrap
+// `#[repr(transparent)]` ensures that AnsiColor has the exact same memory layout as an u8, making it zero-cost to wrap
 #[repr(transparent)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct AnsiColor(u8);
@@ -31,7 +31,7 @@ impl AnsiColor {
 
     // Mapping the Ansi Color name to color names provided in string.
     // Output will be Some(AnsiColor(0)) for "default".
-    // To get the number, its AnsiColor::Default.code()
+    // To get the number, it's AnsiColor::Default.code()
     //
     /// # Example
     ///
@@ -46,7 +46,7 @@ impl AnsiColor {
     /// ```
     pub fn get_ansi_color(color: &str) -> Option<AnsiColor> {
         // .ok() converts Result -> Option
-        // will work same as before.
+        // will work the same as before.
         //
         // in library crate from_str usually return `Result` not `Option`
         //
@@ -252,7 +252,7 @@ impl FromStr for AnsiColor {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // sanitizing `&str` will make api more user friendly
+        // sanitizing `&str` will make api more user-friendly
         // now "AliceBlue", "aliceblue", or "ALICEBLUE" will just work.
         match s.to_lowercase().replace('_', "").as_str() {
             "default" => Ok(AnsiColor::DEFAULT),
