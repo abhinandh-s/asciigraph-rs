@@ -47,29 +47,22 @@ pub fn plot_many(data: &[&[f64]], config: Config) -> String {
     }
 
     // deep copy on input data — from here on we work with owned data
-    let mut data: Vec<Vec<f64>> = data.iter().map(|s| s.to_vec()).collect();
+    let mut data: Vec<Vec<f64>> = data.iter()
+        .map(|s| s.to_vec())
+        .collect();
 
-    // now len_max can use the owned data
-    let mut len_max: usize = 0;
-
-    // Might be for i in 0..data.len() because in Go it is for i := range data
-    for series in data.iter() {
-        len_max = len_max.max(series.len());
-
-        // This is the same as this:
-        /*let l = data[i].len();
-        if l > len_max {
-            len_max = l;
-        }*/
-    }
+    let mut len_max = data.iter()
+        .map(Vec::len)
+        .max()
+        .unwrap_or(0);
 
     // padding and interpolation
     if config.width > 0 {
         for i in 0..data.len() {
-            while data[i].len() < len_max {
-                data[i].push(f64::NAN);
-            }
-
+            // while data[i].len() < len_max {
+            //     data[i].push(f64::NAN);
+            // }
+            data[i].resize(len_max, f64::NAN);
             data[i] = interpolate_array(&data[i], config.width as u32);
         }
 
@@ -106,7 +99,8 @@ pub fn plot_many(data: &[&[f64]], config: Config) -> String {
         if ub > maximum { maximum = ub; }
     }
 
-    let interval = (maximum - minimum).abs();
+    debug_assert!(maximum >= minimum, "maximum should be >= minimum");
+    let interval = maximum - minimum;
 
     if config.height <= 0 {
         config.height = calculate_height(interval)
@@ -172,15 +166,13 @@ pub fn plot_many(data: &[&[f64]], config: Config) -> String {
     // calculate Y-axis values and the width when formatted using the y_axis_value_formatter
     let y = intmin2;
     for y in y..intmax2 + 1 {
-        let magnitude: f64;
-
-        if rows > 0 && interval > 0.0 {
-            magnitude = maximum - (((y - intmin2) as f64 * interval) / rows as f64);
+         let magnitude = if rows > 0 && interval > 0.0 {
+            maximum - (((y - intmin2) as f64 * interval) / rows as f64)
         } else if interval == 0.0 {
-            magnitude = minimum;
+            minimum
         } else {
-            magnitude = y as f64;
-        }
+            y as f64
+        };
 
         magnitudes.push(magnitude);
 
@@ -214,8 +206,7 @@ pub fn plot_many(data: &[&[f64]], config: Config) -> String {
         } else {
             if let Some(formatter) = &config.y_axis_value_formatter {
                 let val = formatter(*magnitude);
-                let padding = " ".repeat((max_width + 1) - val.chars().count());
-                label = format!("{}{}", padding, val);
+                label = format!("{:>width$}", val, width = max_width + 1);
             }
         }
 
@@ -246,59 +237,55 @@ pub fn plot_many(data: &[&[f64]], config: Config) -> String {
             plot[rows - y0][config.offset - 1].color = config.axis_color;
         }
 
-        // Not included in the Go code, but I added this guard to avoid the "empty vector" trap.
-        // since in the loop, we have the condition: series.len() - 1, which could result in -1
-        if series.len() > 1 {
-            for x in 0..series.len() - 1 {
-                let d0 = series[x];
-                let d1 = series[x+1];
+        for (x, window) in series.windows(2).enumerate() {
+            let d0 = window[0];
+            let d1 = window[1];
 
-                if d0.is_nan() && d1.is_nan() {
-                    continue;
-                }
+            if d0.is_nan() && d1.is_nan() {
+                continue;
+            }
 
-                if !d0.is_nan() && d1.is_nan() {
-                    y0 = ((d0 * ratio).round() - intmin2 as f64) as usize;
-                    plot[rows - y0][x + config.offset].text = char_set.end_cap.to_string();
-                    plot[rows - y0][x + config.offset].color = color;
-                    continue;
-                }
-
-                if d0.is_nan() && !d1.is_nan() {
-                    y1 = ((d1 * ratio).round() - intmin2 as f64) as usize;
-                    plot[rows - y1][x + config.offset].text = char_set.start_cap.to_string();
-                    plot[rows - y1][x + config.offset].color = color;
-                    continue;
-                }
-
+            if !d0.is_nan() && d1.is_nan() {
                 y0 = ((d0 * ratio).round() - intmin2 as f64) as usize;
+                plot[rows - y0][x + config.offset].text = char_set.end_cap.to_string();
+                plot[rows - y0][x + config.offset].color = color;
+                continue;
+            }
+
+            if d0.is_nan() && !d1.is_nan() {
                 y1 = ((d1 * ratio).round() - intmin2 as f64) as usize;
+                plot[rows - y1][x + config.offset].text = char_set.start_cap.to_string();
+                plot[rows - y1][x + config.offset].color = color;
+                continue;
+            }
 
-                if y0 == y1 {
-                    plot[rows - y0][x + config.offset].text = char_set.horizontal.to_string();
+            y0 = ((d0 * ratio).round() - intmin2 as f64) as usize;
+            y1 = ((d1 * ratio).round() - intmin2 as f64) as usize;
+
+            if y0 == y1 {
+                plot[rows - y0][x + config.offset].text = char_set.horizontal.to_string();
+            } else {
+                if y0 > y1 {
+                    plot[rows - y1][x + config.offset].text = char_set.arc_up_right.to_string();
+                    plot[rows - y0][x + config.offset].text = char_set.arc_down_left.to_string();
                 } else {
-                    if y0 > y1 {
-                        plot[rows - y1][x + config.offset].text = char_set.arc_up_right.to_string();
-                        plot[rows - y0][x + config.offset].text = char_set.arc_down_left.to_string();
-                    } else {
-                        plot[rows - y1][x + config.offset].text = char_set.arc_down_right.to_string();
-                        plot[rows - y0][x + config.offset].text = char_set.arc_up_left.to_string();
-                    }
-
-                    let start = (y0 as f64).min(y1 as f64) as usize + 1;
-                    let end = (y0 as f64).max(y1 as f64) as usize;
-                    let y = start;
-                    for y in y..end {
-                        plot[rows - y][x + config.offset].text = char_set.vertical_line.to_string();
-                    }
+                    plot[rows - y1][x + config.offset].text = char_set.arc_down_right.to_string();
+                    plot[rows - y0][x + config.offset].text = char_set.arc_up_left.to_string();
                 }
 
-                let start = (y0 as f64).min(y1 as f64) as usize;
+                let start = (y0 as f64).min(y1 as f64) as usize + 1;
                 let end = (y0 as f64).max(y1 as f64) as usize;
                 let y = start;
-                for y in y..=end {
-                    plot[rows - y][x + config.offset].color = color;
+                for y in y..end {
+                    plot[rows - y][x + config.offset].text = char_set.vertical_line.to_string();
                 }
+            }
+
+            let start = (y0 as f64).min(y1 as f64) as usize;
+            let end = (y0 as f64).max(y1 as f64) as usize;
+            let y = start;
+            for y in y..=end {
+                plot[rows - y][x + config.offset].color = color;
             }
         }
     }
@@ -313,30 +300,25 @@ pub fn plot_many(data: &[&[f64]], config: Config) -> String {
             lines.push_str(&config.line_ending);
         }
 
-        // remove trailing spaces
-        let mut last_char_index = 0;
-
-        for i in (0..width).rev() {
-            if horizontal[i].text != " " {
-                last_char_index = i;
-                break;
-            }
-        }
-
+        // build the full row into a temporary string first
+        let mut row = String::new();
         let mut c = AnsiColor::DEFAULT;
 
-        for v in horizontal[..=last_char_index].iter() {
+        for v in horizontal.iter() {
             if v.color != c {
                 c = v.color;
-                lines.push_str(c.to_string().as_str());
+                row.push_str(&c.to_string());
             }
-
-            lines.push_str(v.text.as_str());
+            row.push_str(&v.text);
         }
 
+        // reset color if needed
         if c != AnsiColor::DEFAULT {
-            lines.push_str(AnsiColor::DEFAULT.to_string().as_str());
+            row.push_str(&AnsiColor::DEFAULT.to_string());
         }
+
+        // trim trailing spaces from the row and append to lines
+        lines.push_str(row.trim_end_matches(' '));
     }
 
     // add x-axis if configured
@@ -463,7 +445,6 @@ fn add_x_axis(lines: &mut String, config: &Config, len_max: usize, left_pad: usi
     let total_width = left_pad + len_max;
     let mut axis_line: Vec<char> = vec![' '; total_width];
 
-    // CLAUDE CHECK THIS ONE
     axis_line[left_pad - 1] = DEFAULT_CHAR_SET.up_right;
 
     for i in 0..len_max {
