@@ -1,6 +1,5 @@
 // Color Definitions
 
-use std::borrow::Cow;
 use std::fmt;
 use std::fmt::Formatter;
 use std::str::FromStr;
@@ -64,7 +63,7 @@ impl AnsiColor {
         since = "0.1.3",
         note = "This is redundant as `AnsiColor::default()` is same as `AnsiColor::DEFAULT`"
     )]
-        pub const DEFAULT: AnsiColor = AnsiColor(0);
+    pub const DEFAULT: AnsiColor = AnsiColor(0);
 }
 
 // `$($name:ident => $code:expr),*`
@@ -81,16 +80,6 @@ macro_rules! __impl_const {
             )*
         }
     }
-}
-
-// converts COLOR_01 to "color01"
-macro_rules! __match_arms {
-    ( $($name:ident => $code:expr),* $(,)? ) => {
-        "default" => Ok(AnsiColor::default()),
-        $(
-            s if s == stringify!($name).to_lowercase().replace("_", "") => Ok(AnsiColor::$name),
-        )*
-    };
 }
 
 macro_rules! __impl_from_str {
@@ -124,25 +113,23 @@ macro_rules! __impl_from_str {
             type Err = &'static str;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                // check whether the str only contains a..z
-                // if use gave str that only contains a..z chars, `.to_lowercase().replace("_", "")` this
-                // becomes redundant and cause an unnecessary String allocation
-                let is_clean = |c: &str| c.bytes().all(|b| b.wrapping_sub(b'a') <= 25);
-                let sanitized: Cow<str> = if is_clean(s) {
-                    // we are not pernalising user with a string allocation if their is no reason to.
-                    Cow::Borrowed(s)
-                } else {
-                    Cow::Owned(s.to_lowercase().replace("_", ""))
-                };
                 // sanitizing `&str` will make api more user-friendly
                 // now "AliceBlue", "aliceblue", or "ALICEBLUE" will just work.
-                match sanitized.as_ref() {
-                    "default" => Ok(AnsiColor::default()),
+                match s {
+                    "default" => return Ok(AnsiColor::default()),
                     $(
-                        s if s == stringify!($name).to_lowercase().replace("_", "") => Ok(AnsiColor::$name),
+                        stringify!($name) => return Ok(AnsiColor::$name),
                     )*
-                        _ => Err("invalid color name"),
+                    _ => {
+                        $(
+                            if color_match(s, stringify!($name)) {
+
+                                return Ok(AnsiColor::$name);
+                            }
+                        )*
+                    }
                 }
+                Err("invalid color name")
             }
         }
     }
@@ -355,4 +342,48 @@ impl fmt::Display for AnsiColor {
             write!(f, "\x1b[38;5;{}m", c)
         }
     }
+}
+
+/// compile time `str` check for `define_colors!` macro
+const fn color_match(input: &str, target: &str) -> bool {
+    debug_assert!(input.is_ascii());
+    debug_assert!(target.is_ascii());
+
+    let inp = input.as_bytes();
+    let tar = target.as_bytes();
+
+    let mut i = 0;
+    let mut j = 0;
+
+    while i < inp.len() || j < tar.len() {
+        // skip '_' in input
+        if i < inp.len() && inp[i] == b'_' {
+            i += 1;
+            continue;
+        }
+        // skip '_' in target
+        if j < tar.len() && tar[j] == b'_' {
+            j += 1;
+            continue;
+        }
+
+        // If str len of input and target is different
+        // after removing '_', return false
+
+        if i >= inp.len() || j >= tar.len() {
+            return false;
+        }
+
+        let b_inp = inp[i] | 0x20;
+        let b_tar = tar[j] | 0x20;
+
+        if b_inp != b_tar {
+            return false;
+        }
+
+        i += 1;
+        j += 1;
+    }
+
+    true
 }
