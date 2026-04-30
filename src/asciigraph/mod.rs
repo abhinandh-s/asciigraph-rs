@@ -189,6 +189,16 @@ fn prepare_data(data: &[&[f64]], config: &Config) -> (Vec<Vec<f64>>, usize) {
         len_max = config.width;
     }
 
+    // If a moving average window is configured, compute it from the first
+    // series and append it as an additional series. It is computed after
+    // interpolation so the window applies to the final column count.
+    if let Some(window) = config.moving_average_window {
+        if !data.is_empty() {
+            let ma = utils::moving_average(&data[0], window);
+            data.push(ma);
+        }
+    }
+
     (data, len_max)
 }
 

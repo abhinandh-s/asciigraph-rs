@@ -217,6 +217,9 @@ pub struct Config {
 
     /// Horizontal reference lines drawn at user-specified Y values.
     pub thresholds: Vec<Threshold>,
+
+    /// Window size for the moving average overlay. `None` means disabled.
+    pub moving_average_window: Option<usize>,
 }
 
 impl Default for Config {
@@ -242,6 +245,7 @@ impl Default for Config {
             y_axis_value_formatter: None,
             zero_line: None,
             thresholds: Vec::new(),
+            moving_average_window: None,
         }
     }
 }
@@ -483,6 +487,29 @@ impl Config {
     /// ```
     pub fn threshold(mut self, t: Threshold) -> Self {
         self.thresholds.push(t);
+        self
+    }
+
+    /// Enables a moving average overlay rendered as an additional series on
+    /// the graph.
+    ///
+    /// The moving average is computed over a sliding window of `window` points
+    /// centered on each data point. The smoothed series is drawn on top of the
+    /// original data using the next available series color and character set.
+    ///
+    /// A window of 0 or 1 has no effect. If the window is larger than the
+    /// data length, it is clamped automatically.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use asciigraph::{plot, Config};
+    ///
+    /// let data = vec![3.0, 1.0, 5.0, 2.0, 4.0, 1.0, 6.0, 2.0, 5.0, 1.0];
+    /// let graph = plot(&data, Config::default().moving_average(3));
+    /// ```
+    pub fn moving_average(mut self, window: usize) -> Self {
+        self.moving_average_window = Some(window);
         self
     }
 }

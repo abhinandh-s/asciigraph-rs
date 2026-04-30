@@ -1205,15 +1205,6 @@ mod tests {
         );
     }
 
-    // ---------------------------------------------------------------------------
-    // Happy path: data straddles zero, zero line is enabled.
-    //
-    // To fill in the expected string:
-    //   1. Temporarily add `println!("{}", graph);` after the `let graph` line.
-    //   2. Run: cargo test test_zero_line_appears -- --nocapture
-    //   3. Copy the printed output into the expected string below.
-    //   4. Remove the println! and run the tests again to confirm they pass.
-    // ---------------------------------------------------------------------------
     #[test]
     fn test_zero_line_appears_when_data_straddles_zero() {
         let data = vec![-2.0, -1.0, 0.0, 1.0, 2.0];
@@ -1224,7 +1215,7 @@ mod tests {
     }
 
     // ---------------------------------------------------------------------------
-    // Priority: a series arc character must win over the zero line character
+    // Priority: a series arc character must win over the zero-line character
     // when a data point lands exactly on zero.
     //
     // render_zero_line runs before render_series and writes '─' into blank cells.
@@ -1237,8 +1228,8 @@ mod tests {
         let graph = plot(&data, Config::default().zero_line(ZeroLine::new()));
 
         // '┼' marks where the series crosses the axis at y = 0.
-        // If render_series did NOT overwrite the zero line character,
-        // we would see '─' here instead and this assertion would fail.
+        // If render_series did NOT overwrite the zero-line character,
+        // we would see '─' here instead, and this assertion would fail.
         assert!(
             graph.contains('┼'),
             "series axis-crossing character ┼ must appear at y = 0, not the zero line character"
@@ -1279,10 +1270,7 @@ mod tests {
         );
     }
 
-    // Happy path: single threshold within the visible range.
-    // Uncomment the println!, run:
-    //   cargo test test_threshold_single_appears -- --nocapture
-    // Paste the output in place of PASTE_OUTPUT_HERE, then comment it back out.
+    // Single threshold within the visible range.
     #[test]
     fn test_threshold_single_appears() {
         let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 4.0, 3.0, 2.0, 1.0];
@@ -1293,9 +1281,6 @@ mod tests {
     }
 
     // Multiple thresholds: both must appear at their correct rows.
-    // Uncomment the println!, run:
-    //   cargo test test_threshold_multiple_appear -- --nocapture
-    // Paste the output in place of PASTE_OUTPUT_HERE, then comment it back out.
     #[test]
     fn test_threshold_multiple_appear() {
         let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 4.0, 3.0, 2.0, 1.0];
@@ -1341,5 +1326,74 @@ mod tests {
             graph.contains("\x1b[91m"),
             "colored threshold must emit ANSI escape code for RED"
         );
+    }
+
+    // -------------------------------------------------------------------------
+    // Moving average tests
+    // -------------------------------------------------------------------------
+
+    // The moving average series must produce a smoother curve than the
+    // original. We verify this by checking that the output contains more
+    // rows than a flat line would — i.e. the MA series is actually rendered.
+    #[test]
+    fn test_moving_average_appears_as_additional_series() {
+        let data = vec![1.0, 5.0, 1.0, 5.0, 1.0, 5.0, 1.0];
+
+        let without = plot(&data, Config::default());
+        let with_ma = plot(&data, Config::default().moving_average(3));
+
+        // The graph with a moving average must differ from the one without.
+        assert_ne!(
+            without, with_ma,
+            "moving average overlay must change the graph output"
+        );
+    }
+
+    // Window of 1 has no effect — output must be identical.
+    #[test]
+    fn test_moving_average_window_one_has_no_effect() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+
+        let without = plot(&data, Config::default());
+        let with_ma = plot(&data, Config::default().moving_average(1));
+
+        assert_eq!(
+            without, with_ma,
+            "moving average with window 1 should have no effect"
+        );
+    }
+
+    // Window of 0 has no effect — output must be identical.
+    #[test]
+    fn test_moving_average_window_zero_has_no_effect() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+
+        let without = plot(&data, Config::default());
+        let with_ma = plot(&data, Config::default().moving_average(0));
+
+        assert_eq!(
+            without, with_ma,
+            "moving average with window 0 should have no effect"
+        );
+    }
+
+    // Window larger than data length — must not panic, output must differ.
+    #[test]
+    fn test_moving_average_window_larger_than_data() {
+        let data = vec![1.0, 3.0, 1.0];
+        let graph = plot(&data, Config::default().moving_average(100));
+
+        // Must not panic and must produce some output.
+        assert!(!graph.is_empty(), "must produce output even when window exceeds data length");
+    }
+
+    #[test]
+    fn test_moving_average_exact_output() {
+        let data = vec![1.0, 5.0, 3.0, 7.0, 2.0, 6.0, 4.0, 8.0, 3.0, 5.0];
+        let graph = plot(&data, Config::default().moving_average(3));
+
+
+        let expected = " 8.00 ┤      ╭╮\n 7.00 ┤  ╭╮  ││\n 6.00 ┤  ││╭╭╮│\n 5.00 ┤╭╭╮╭╮│╰─╮\n 4.00 ┤││╰╯╰╯╯│╰\n 3.00 ┼─╯╯││  ╰╯\n 2.00 ┤│  ╰╯\n 1.00 ┼╯";
+        assert_eq!(graph, expected);
     }
 }

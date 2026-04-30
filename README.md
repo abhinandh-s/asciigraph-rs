@@ -373,6 +373,51 @@ Running this example renders the following graph:
 Thresholds outside the visible Y range are silently ignored. Series arc
 characters always render on top of threshold lines where they overlap.
 
+### Moving average overlay
+
+Add a smoothed trend line on top of your data using `Config::moving_average()`.
+The moving average is computed over a sliding window and rendered as an
+additional series. Pair it with `series_colors` to visually distinguish the
+smoothed series from the raw data.
+
+```rust
+use asciigraph::{plot, Config, AnsiColor};
+
+fn main() {
+    let data = vec![
+        3.0, 1.0, 5.0, 2.0, 8.0, 4.0, 7.0, 2.0, 6.0, 3.0,
+        9.0, 4.0, 6.0, 2.0, 7.0, 3.0, 8.0, 1.0, 5.0, 3.0,
+    ];
+
+    let graph = plot(
+        &data,
+        Config::default()
+            .moving_average(5)
+            .series_colors(&[AnsiColor::DEFAULT, AnsiColor::YELLOW]),
+    );
+
+    println!("{}", graph);
+}
+```
+
+Running this example renders the following graph:
+
+```
+ 9.00 ┤         ╭╮
+ 8.00 ┤   ╭╮    ││    ╭╮
+ 7.00 ┤   ││╭╮  ││  ╭╮││
+ 6.00 ┤   ││││╭╮╭╮╭╮││││
+ 5.00 ┤ ╭╮╭──╮╭─╯╰╯│╭╮╭╮╭╮
+ 4.00 ┤ ╭─╯╰╯╰╯││╰╯╰╯╰╯╰─╮
+ 3.00 ┼─╯││  ││╰╯  ││╰╯││╰
+ 2.00 ┤││╰╯  ╰╯    ╰╯  ││
+ 1.00 ┤╰╯              ╰╯
+```
+
+The raw data is rendered in the default color. The yellow series is the
+5-point moving average, showing the underlying trend with short-term noise
+smoothed out.
+
 ## CLI Installation
 
 Install the CLI binary with:

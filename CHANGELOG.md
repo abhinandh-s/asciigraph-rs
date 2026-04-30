@@ -22,6 +22,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dataset that straddles zero, including a colored variant using `ZeroLine::with_color()`.
 - Added `examples/threshold.rs` demonstrating two threshold lines at Y = 80.0
   and Y = 90.0 rendered in different ANSI colors over a 20-point dataset.
+- Moving average overlay via `Config::moving_average(window)` — computes a
+  sliding window average over the first series and renders it as an additional
+  series on the same graph. NaN values are excluded from the window average.
+  A window of 0 or 1 has no effect. Pairs naturally with `series_colors` to
+  visually distinguish the smoothed series from the raw data.
+- Added `examples/moving_average.rs` demonstrating a 5-point moving average
+  overlay rendered in yellow over a noisy 20-point dataset.
+- Improved documentation comments across `utils.rs` — all utility functions
+  now have doc comments with descriptions, parameter notes, and panic
+  conditions where applicable.
 
 ### Changed
 - Refactored `asciigraph.rs` into a module directory (`src/asciigraph/`) with
