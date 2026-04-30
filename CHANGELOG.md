@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - [CURRENTLY UNDER DEVELOPMENT]
+
+### Added
+- Zero-line highlighting via `ZeroLine` — an opt-in horizontal reference line
+  drawn at Y = 0.0 across the data area when the plotted range straddles zero.
+  Configurable with a custom character and ANSI color. Enabled through the
+  `Config::zero_line()` builder method.
+- Threshold lines via `Threshold` — opt-in horizontal reference lines drawn
+  at user-specified Y values using a dashed character (`╌`). Each threshold
+  carries its own value, color, and character independently, making it easy
+  to distinguish warning and critical levels. Multiple thresholds can be added
+  by chaining `Config::threshold()` calls. Thresholds outside the visible Y
+  range are silently ignored. Series arc characters always render on top.
+- Added `examples/zero_line.rs` demonstrating zero line highlighting with a
+  dataset that straddles zero, including a colored variant using `ZeroLine::with_color()`.
+- Added `examples/threshold.rs` demonstrating two threshold lines at Y = 80.0
+  and Y = 90.0 rendered in different ANSI colors over a 20-point dataset.
+
+### Changed
+- Refactored `asciigraph.rs` into a module directory (`src/asciigraph/`) with
+  a dedicated `features/` subdirectory. Self-contained rendering features are
+  now in separate files:
+    - `features/zero_line.rs` — `render_zero_line`
+    - `features/threshold.rs` — `render_thresholds`
+    - `features/x_axis.rs` — `add_x_axis`
+- Improved documentation comments across `options.rs` and `asciigraph.rs` —
+  all public types, fields, and methods now have doc comments with descriptions,
+  parameter notes, and usage examples where appropriate.
+- Refactored `plot_many` into focused, single-responsibility helper functions.
+  The monolithic function is now decomposed into:
+    - `normalize_config` — applies default values to offset and line ending
+    - `prepare_data` — deep-copies, pads, and interpolates input series
+    - `calculate_bounds` — derives min/max, ratio, and scaled integer bounds,
+      returned as a named `Bounds` struct
+    - `init_grid` — allocates the blank 2-D `Cell` grid
+    - `calculate_precision` — computes Y-axis label decimal places
+    - `calculate_y_axis_magnitudes` — computes the real-valued magnitude and
+      maximum label width for each grid row
+    - `render_y_axis` — writes Y-axis labels and tick characters into the grid
+    - `render_series` — draws arc and line characters for each data series
+    - `render_zero_line` — draws the zero line into the grid before series rendering
+    - `join_rows` — flattens the 2-D grid into a single ANSI-colored string
+    - `render_caption` — appends the caption below the plot body
+
+[0.1.4]: https://github.com/neneodonkor/asciigraph-rs/compare/v0.1.3...v0.1.4
+
 ## [0.1.3] - 2026-04-29
 
 ### Changed

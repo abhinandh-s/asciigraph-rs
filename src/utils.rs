@@ -68,28 +68,6 @@ pub(crate) fn interpolate_array(data: &[f64], fit_count: u32) -> Vec<f64> {
     interpolated_data
 }
 
-// GO CODE YET TO BE PORTED
-// clear terminal screen
-/*var Clear func()
-
-func init() {
-    platform := runtime.GOOS
-
-    if platform == "windows" {
-        Clear = func() {
-            cmd := exec.Command("cmd", "/c", "cls")
-            cmd.Stdout = os.Stdout
-            if err := cmd.Run(); err != nil {
-              log.Fatal(err)
-            }
-        }
-    } else {
-        Clear = func() {
-            fmt.Print("\033[2J\033[H")
-        }
-    }
-}*/
-
 pub(crate) fn calculate_height(interval: f64) -> usize {
     if interval >= 1.0 {
         return interval as usize;

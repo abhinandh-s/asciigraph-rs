@@ -3,6 +3,8 @@ mod tests {
     use asciigraph::{plot, plot_many};
     use asciigraph::AnsiColor;
     use asciigraph::Config;
+    use asciigraph::ZeroLine;
+    use asciigraph::Threshold;
 
     // Helper to clean expected strings the same way Go tests do
     fn clean(s: &str) -> String {
@@ -1160,5 +1162,184 @@ mod tests {
             "\x1b[0m"
         );
         assert_eq!(plot_many(&data, config), expected);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Zero line tests
+    // ---------------------------------------------------------------------------
+
+
+
+    // ---------------------------------------------------------------------------
+    // Guard condition: all data positive — zero lies below the visible range.
+    // The output must be byte-for-byte identical with and without the zero line
+    // because render_zero_line should silently do nothing in this case.
+    // ---------------------------------------------------------------------------
+    #[test]
+    fn test_zero_line_no_effect_when_data_all_positive() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+
+        let without = plot(&data, Config::default());
+        let with_zl = plot(&data, Config::default().zero_line(ZeroLine::new()));
+
+        assert_eq!(
+            without, with_zl,
+            "zero line should have no effect when all data is positive"
+        );
+    }
+
+    // ---------------------------------------------------------------------------
+    // Guard condition: all data negative — zero lies above the visible range.
+    // Same expectation: the output must be identical with and without the zero line.
+    // ---------------------------------------------------------------------------
+    #[test]
+    fn test_zero_line_no_effect_when_data_all_negative() {
+        let data = vec![-5.0, -4.0, -3.0, -2.0, -1.0];
+
+        let without = plot(&data, Config::default());
+        let with_zl = plot(&data, Config::default().zero_line(ZeroLine::new()));
+
+        assert_eq!(
+            without, with_zl,
+            "zero line should have no effect when all data is negative"
+        );
+    }
+
+    // ---------------------------------------------------------------------------
+    // Happy path: data straddles zero, zero line is enabled.
+    //
+    // To fill in the expected string:
+    //   1. Temporarily add `println!("{}", graph);` after the `let graph` line.
+    //   2. Run: cargo test test_zero_line_appears -- --nocapture
+    //   3. Copy the printed output into the expected string below.
+    //   4. Remove the println! and run the tests again to confirm they pass.
+    // ---------------------------------------------------------------------------
+    #[test]
+    fn test_zero_line_appears_when_data_straddles_zero() {
+        let data = vec![-2.0, -1.0, 0.0, 1.0, 2.0];
+        let graph = plot(&data, Config::default().zero_line(ZeroLine::new()));
+
+        let expected = "  2.00 ┤   ╭\n  1.00 ┤  ╭╯\n  0.00 ┤─╭╯──\n -1.00 ┤╭╯\n -2.00 ┼╯";
+        assert_eq!(graph, expected);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Priority: a series arc character must win over the zero line character
+    // when a data point lands exactly on zero.
+    //
+    // render_zero_line runs before render_series and writes '─' into blank cells.
+    // render_series then overwrites the zero-row cell with '┼' for the first
+    // data point. This test confirms that priority is respected.
+    // ---------------------------------------------------------------------------
+    #[test]
+    fn test_zero_line_series_wins_at_zero_crossing() {
+        let data = vec![0.0, 1.0, 2.0, 1.0, 0.0];
+        let graph = plot(&data, Config::default().zero_line(ZeroLine::new()));
+
+        // '┼' marks where the series crosses the axis at y = 0.
+        // If render_series did NOT overwrite the zero line character,
+        // we would see '─' here instead and this assertion would fail.
+        assert!(
+            graph.contains('┼'),
+            "series axis-crossing character ┼ must appear at y = 0, not the zero line character"
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Threshold line tests
+    // -------------------------------------------------------------------------
+
+    // Guard condition: threshold below the visible range.
+    // Output must be identical with and without the threshold.
+    #[test]
+    fn test_threshold_no_effect_when_below_range() {
+        let data = vec![5.0, 6.0, 7.0, 8.0, 9.0];
+
+        let without = plot(&data, Config::default());
+        let with_t  = plot(&data, Config::default().threshold(Threshold::new(1.0)));
+
+        assert_eq!(
+            without, with_t,
+            "threshold below the visible range should have no effect"
+        );
+    }
+
+    // Guard condition: threshold above the visible range.
+    // Output must be identical with and without the threshold.
+    #[test]
+    fn test_threshold_no_effect_when_above_range() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+
+        let without = plot(&data, Config::default());
+        let with_t  = plot(&data, Config::default().threshold(Threshold::new(99.0)));
+
+        assert_eq!(
+            without, with_t,
+            "threshold above the visible range should have no effect"
+        );
+    }
+
+    // Happy path: single threshold within the visible range.
+    // Uncomment the println!, run:
+    //   cargo test test_threshold_single_appears -- --nocapture
+    // Paste the output in place of PASTE_OUTPUT_HERE, then comment it back out.
+    #[test]
+    fn test_threshold_single_appears() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 4.0, 3.0, 2.0, 1.0];
+        let graph = plot(&data, Config::default().threshold(Threshold::new(3.0)));
+
+        let expected = " 5.00 ┤   ╭╮\n 4.00 ┤  ╭╯╰╮\n 3.00 ┤╌╭╯╌╌╰╮╌╌\n 2.00 ┤╭╯    ╰╮\n 1.00 ┼╯      ╰";
+        assert_eq!(graph, expected);
+    }
+
+    // Multiple thresholds: both must appear at their correct rows.
+    // Uncomment the println!, run:
+    //   cargo test test_threshold_multiple_appear -- --nocapture
+    // Paste the output in place of PASTE_OUTPUT_HERE, then comment it back out.
+    #[test]
+    fn test_threshold_multiple_appear() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0, 4.0, 3.0, 2.0, 1.0];
+        let graph = plot(
+            &data,
+            Config::default()
+                .threshold(Threshold::new(2.0))
+                .threshold(Threshold::new(4.0)),
+        );
+
+        let expected = " 5.00 ┤   ╭╮\n 4.00 ┤╌╌╭╯╰╮╌╌╌\n 3.00 ┤ ╭╯  ╰╮\n 2.00 ┤╭╯╌╌╌╌╰╮╌\n 1.00 ┼╯      ╰";
+        assert_eq!(graph, expected);
+    }
+
+    // Priority: series arc characters must win over the threshold character
+    // where they share the same cell.
+    // render_thresholds runs before render_series, so series characters
+    // overwrite the ╌ character at any cell they occupy.
+    #[test]
+    fn test_threshold_series_wins_at_crossing() {
+        // The series starts at exactly 3.0, which is also the threshold value.
+        // render_series places ┼ at that cell — it must not be ╌.
+        let data = vec![3.0, 4.0, 5.0, 4.0, 3.0];
+        let graph = plot(&data, Config::default().threshold(Threshold::new(3.0)));
+
+        assert!(
+            graph.contains('┼'),
+            "series axis-crossing character ┼ must appear where the series meets the threshold row"
+        );
+    }
+
+    // Colored threshold: ANSI escape codes must appear in the output.
+    #[test]
+    fn test_threshold_color_applied() {
+        let data = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+        let graph = plot(
+            &data,
+            Config::default().threshold(Threshold::with_color(3.0, AnsiColor::RED)),
+        );
+
+        // AnsiColor::RED emits \x1b[91m — confirm it appears in the output.
+        assert!(
+            graph.contains("\x1b[91m"),
+            "colored threshold must emit ANSI escape code for RED"
+        );
     }
 }
