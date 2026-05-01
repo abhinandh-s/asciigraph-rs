@@ -22,6 +22,7 @@ supporting:
 - A full CLI binary with realtime streaming support and configurable FPS
 
 Full API documentation is available on [docs.rs](https://docs.rs/asciigraph-rs).
+[Changelog](CHANGELOG.md)
 
 ## Installation
 
