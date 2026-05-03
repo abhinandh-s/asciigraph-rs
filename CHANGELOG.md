@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.5] – UNDER DEVELOPMENT
+## [0.1.5] – 2026-05-03
 
 ### Added
 - X and Y axis labels via `Config::x_axis_label()` and `Config::y_axis_label()`.
@@ -51,6 +51,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `examples/threshold.rs` to demonstrate both single-series and
   multi-series threshold usage, including the visibility rule and color
   inheritance rule.
+
+- Refactored `options.rs` into a module directory (`src/options/`) with three
+  focused files, mirroring the structure used by `src/asciigraph/`:
+    - `charset.rs` — `CharSet`, `DEFAULT_CHAR_SET`, and `create_char_set`
+    - `config.rs` — `Config` struct and all its builder methods
+    - `extensions.rs` — `ZeroLine`, `Threshold`, and `StatAnnotations`
+
+  No public API changes — all types remain accessible at the same paths as before.
 
 [0.1.5]: https://github.com/neneodonkor/asciigraph-rs/compare/v0.1.4...v0.1.5
 
