@@ -56,8 +56,6 @@ impl AnsiColor {
         // building a Type from &str.
         AnsiColor::from_str(color).ok()
     }
-
-    // Named ANSI 256-color constants
 }
 
 // `$($name:ident => $code:expr),*`
@@ -137,6 +135,7 @@ macro_rules! define_colors {
     }
 }
 
+// Named ANSI 256-color constants
 #[rustfmt::skip] // don't format this block
 define_colors! [
     AQUA => 14,
@@ -281,7 +280,7 @@ define_colors! [
     YELLOW => 11,
     YELLOW_GREEN => 149,
 ];
-    
+
 // deligates to [`FromStr`]
 //
 /// # Example
@@ -340,6 +339,19 @@ impl fmt::Display for AnsiColor {
 }
 
 /// compile time `str` check for `define_colors!` macro
+/// ```
+///  use asciigraph::AnsiColor;
+///  use std::str::FromStr;
+///
+///  let input = "aqua";
+///  let color = AnsiColor::from_str(input).unwrap();
+///  assert_eq!(color, AnsiColor::AQUA);
+///  
+///  // case and `_` are ingnored, therfore this is also valid
+///  let input_02 = "A_q_u_A";
+///  let color_02 = AnsiColor::from_str(input_02).unwrap();
+///  assert_eq!(color_02, AnsiColor::AQUA);
+/// ```
 const fn color_match(input: &str, target: &str) -> bool {
     debug_assert!(input.is_ascii());
     debug_assert!(target.is_ascii());
@@ -361,10 +373,8 @@ const fn color_match(input: &str, target: &str) -> bool {
             j += 1;
             continue;
         }
-
         // If str len of input and target is different
         // after removing '_', return false
-
         if i >= inp.len() || j >= tar.len() {
             return false;
         }
@@ -379,6 +389,5 @@ const fn color_match(input: &str, target: &str) -> bool {
         i += 1;
         j += 1;
     }
-
     true
 }
